@@ -79,36 +79,37 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 using std::shared_ptr;
+using namespace std;
 
-const string RESET = "\033[0m";
-const string BLACK = "0m";
-const string RED = "1m";
-const string GREEN = "2m";
-const string BOLD = "\033[1;3";
-const string REGULAR = "\033[0;3";
-const string UNDERLINE = "\033[4;3";
-const string BACKGROUND = "\033[4";
+const std::string RESET = "\033[0m";
+const std::string BLACK = "0m";
+const std::string RED = "1m";
+const std::string GREEN = "2m";
+const std::string BOLD = "\033[1;3";
+const std::string REGULAR = "\033[0;3";
+const std::string UNDERLINE = "\033[4;3";
+const std::string BACKGROUND = "\033[4";
 
 const int DOUBLE_PRECISION = 17;
 
 // yaml parameters
-const string SENSOR_LIST = "sensors";
-const string CSVFILE = "data_file";
-const string DATADIR = "data_dir";
-const string SENSOR_TYPE = "type";
-const string INFO = "info";
-const string TOPIC = "topic";
-const string NAME = "name";
-const string CAMERA = "camera";
-const string IMU = "imu";
-const string VICON = "vicon";
+const std::string SENSOR_LIST = "sensors";
+const std::string CSVFILE = "data_file";
+const std::string DATADIR = "data_dir";
+const std::string SENSOR_TYPE = "type";
+const std::string INFO = "info";
+const std::string TOPIC = "topic";
+const std::string NAME = "name";
+const std::string CAMERA = "camera";
+const std::string IMU = "imu";
+const std::string VICON = "vicon";
 
 ///\todo: obsolete! delete
-const string configDirectoryName = "/config/";
-const string cam0DirectoryName = "/cam0";
-const string cam1DirectoryName = "/cam1";
-const string imuDirectoryName = "/imu0";
-const string imuFileName = "imu0.csv";
+const std::string configDirectoryName = "/config/";
+const std::string cam0DirectoryName = "/cam0";
+const std::string cam1DirectoryName = "/cam1";
+const std::string imuDirectoryName = "/imu0";
+const std::string imuFileName = "imu0.csv";
 
 std::ofstream imu_file_;
 
@@ -117,12 +118,12 @@ void signalHandler(int s)
   imu_file_.close();
 }
 
-string colouredString(string str, string colour, string option)
+std::string colouredString(std::string str, std::string colour, std::string option)
 {
   return option + colour + str + RESET;
 }
 
-bool createDirs(string folderPath, map<string, map<string, string>> sensor_info)
+bool createDirs(std::string folderPath, std::map<std::string, std::map<std::string, std::string>> sensor_info)
 {
 
   path p(folderPath);
@@ -153,26 +154,26 @@ bool createDirs(string folderPath, map<string, map<string, string>> sensor_info)
   return res;
 }
 
-void writeCameraHeader(shared_ptr<ofstream> file)
+void writeCameraHeader(std::shared_ptr<std::ofstream> file)
 {
   *file << "#timestamp [ns]," << "filename" << endl;
 }
 
-void writeImuHeader(shared_ptr<ofstream> file)
+void writeImuHeader(std::shared_ptr<std::ofstream> file)
 {
   *file << "#timestamp [ns]," << "w_S_x [rad s^-1]," << "w_S_y [rad s^-1],"
       << "w_S_z [rad s^-1]," << "a_S_x [m s^-2]," << "a_S_y [m s^-2],"
       << "a_S_z [m s^-2]" << endl;
 }
 
-void writeViconHeader(shared_ptr<ofstream> file)
+void writeViconHeader(std::shared_ptr<std::ofstream> file)
 {
   *file << "#timestamp [ns]," << "p_S_x [m]," << "p_S_y [m]," << "p_S_z [m],"
       << "R_S_w []" << "R_S_x []," << "R_S_y []," << "R_S_z []" << endl;
 }
 
-void writeCSVHeaders(map<string, shared_ptr<ofstream>> &files,
-                     const map<string, map<string, string>> &sensor_info)
+void writeCSVHeaders(std::map<std::string, std::shared_ptr<std::ofstream>> &files,
+                     const std::map<std::string, std::map<std::string, std::string>> &sensor_info)
 {
   for (auto iterator : sensor_info) {
     if (iterator.second[SENSOR_TYPE].compare(CAMERA) == 0)
@@ -184,27 +185,27 @@ void writeCSVHeaders(map<string, shared_ptr<ofstream>> &files,
   }
 }
 
-map<string, shared_ptr<ofstream> > openFileStreams(
-    const string folder_path, map<string, map<string, string>> &sensor_info)
+std::map<std::string, std::shared_ptr<std::ofstream> > openFileStreams(
+    const std::string folder_path, std::map<std::string, std::map<std::string, std::string>> &sensor_info)
 {
-  map<string, shared_ptr<ofstream>> topic2file_map;
+	std::map<std::string, std::shared_ptr<std::ofstream>> topic2file_map;
   for (auto &iterator : sensor_info) {
-    string topic = iterator.first;
-    string csv_file_path = folder_path + string("/") + iterator.second[CSVFILE];
-    ofstream *file = new ofstream(csv_file_path.c_str());
-    shared_ptr < ofstream > file_ptr(file);
+	  std::string topic = iterator.first;
+	  std::string csv_file_path = folder_path + std::string("/") + iterator.second[CSVFILE];
+    std::ofstream *file = new std::ofstream(csv_file_path.c_str());
+    std::shared_ptr < std::ofstream > file_ptr(file);
     topic2file_map.insert(
-        std::pair<string, shared_ptr<ofstream>>(topic, file_ptr));
+        std::pair<std::string, std::shared_ptr<std::ofstream>>(topic, file_ptr));
   }
   writeCSVHeaders(topic2file_map, sensor_info);
   return topic2file_map;
 }
 
-map<string, map<string, string> > sensorInfo(const ros::NodeHandle &nh)
+std::map<std::string, std::map<std::string, std::string> > sensorInfo(const ros::NodeHandle &nh)
 {
   cout << colouredString("\tRetrieving sensor list...", RED, REGULAR);
 
-  vector < string > sensor_list;
+  vector < std::string > sensor_list;
   if (!nh.getParam(SENSOR_LIST, sensor_list)) {
     std::stringstream msg;
     msg << "FAIL! Missing \"" << SENSOR_LIST
@@ -216,7 +217,7 @@ map<string, map<string, string> > sensorInfo(const ros::NodeHandle &nh)
 
   cout << colouredString("\tRetrieving CSV filename...", RED, REGULAR);
 
-  string csv_filename;
+  std::string csv_filename;
   if (!nh.getParam(CSVFILE, csv_filename)) {
     std::stringstream msg;
     msg << "FAIL! Missing \"" << CSVFILE
@@ -227,16 +228,16 @@ map<string, map<string, string> > sensorInfo(const ros::NodeHandle &nh)
   cout << colouredString("\t[DONE!]", GREEN, REGULAR) << endl;
 
   cout << colouredString("\tRetrieving sensor list...", RED, REGULAR);
-  map<string, map<string, string>> topic2info;
+  std::map<std::string, std::map<std::string, std::string>> topic2info;
 
-  map < string, string > sensor_new_info;
+  std::map < std::string, std::string > sensor_new_info;
 
-  for (string sensor : sensor_list) {
+  for (std::string sensor : sensor_list) {
     sensor_new_info.clear();
 
     std::stringstream ss;
     ss << INFO << "/" << sensor;
-    map < string, string > sensor_params;
+    std::map < std::string, std::string > sensor_params;
 
     if (!nh.getParam(ss.str(), sensor_params)) {
       std::stringstream msg;
@@ -246,25 +247,25 @@ map<string, map<string, string> > sensorInfo(const ros::NodeHandle &nh)
       exit (EXIT_FAILURE);
     }
 
-    string topic = sensor_params[TOPIC];
+    std::string topic = sensor_params[TOPIC];
 
-    string csv_file_path = sensor + string("/") + csv_filename;
+    std::string csv_file_path = sensor + std::string("/") + csv_filename;
 
-    sensor_new_info.insert(std::pair<string, string>(CSVFILE, csv_file_path));
+    sensor_new_info.insert(std::pair<std::string, std::string>(CSVFILE, csv_file_path));
 
     if (sensor_params.find(DATADIR) != sensor_params.end()) {
-      string data_dir = sensor + string("/") + sensor_params[DATADIR];
-      sensor_new_info.insert(std::pair<string, string>(DATADIR, data_dir));
+	    std::string data_dir = sensor + std::string("/") + sensor_params[DATADIR];
+      sensor_new_info.insert(std::pair<std::string, std::string>(DATADIR, data_dir));
     }
 
-    string sensor_type = sensor_params[SENSOR_TYPE];
+    std::string sensor_type = sensor_params[SENSOR_TYPE];
 
-    sensor_new_info.insert(std::pair<string, string>(SENSOR_TYPE, sensor_type));
+    sensor_new_info.insert(std::pair<std::string, std::string>(SENSOR_TYPE, sensor_type));
 
-    sensor_new_info.insert(std::pair<string, string>(NAME, sensor));
+    sensor_new_info.insert(std::pair<std::string, std::string>(NAME, sensor));
 
     topic2info.insert(
-        std::pair<string, map<string, string>>(topic, sensor_new_info));
+        std::pair<std::string, std::map<std::string, std::string>>(topic, sensor_new_info));
 
   }
 
@@ -274,7 +275,7 @@ map<string, map<string, string> > sensorInfo(const ros::NodeHandle &nh)
 
 }
 
-void writeCSVCamera(shared_ptr<ofstream> file, ros::Time stamp)
+void writeCSVCamera(std::shared_ptr<std::ofstream> file, ros::Time stamp)
 {
   std::stringstream ss;
   ss << stamp.toNSec() << "," << stamp.toNSec() << ".png";
@@ -282,7 +283,7 @@ void writeCSVCamera(shared_ptr<ofstream> file, ros::Time stamp)
   *file << ss.str() << endl;
 }
 
-void writeCSVImu(shared_ptr<ofstream> file, sensor_msgs::Imu::ConstPtr imu)
+void writeCSVImu(std::shared_ptr<std::ofstream> file, sensor_msgs::Imu::ConstPtr imu)
 {
   std::ostringstream ss;
   ss << std::setprecision(DOUBLE_PRECISION) << imu->header.stamp.toNSec() << ","
@@ -292,7 +293,7 @@ void writeCSVImu(shared_ptr<ofstream> file, sensor_msgs::Imu::ConstPtr imu)
   *file << ss.str() << endl;
 }
 
-void writeCSVVicon(shared_ptr<ofstream> file,
+void writeCSVVicon(std::shared_ptr<std::ofstream> file,
                    geometry_msgs::TransformStamped::ConstPtr vicon)
 {
   std::ostringstream ss;
@@ -306,8 +307,8 @@ void writeCSVVicon(shared_ptr<ofstream> file,
   *file << ss.str() << endl;
 }
 
-bool isTopicInMap(map<string, map<string, string> > &topic2info,
-                  string topic_name)
+bool isTopicInMap(std::map<std::string, std::map<std::string, std::string> > &topic2info,
+                  std::string topic_name)
 {
 
   bool res = false;
@@ -329,9 +330,9 @@ bool isTopicInMap(map<string, map<string, string> > &topic2info,
   return res;
 }
 
-bool findTopicInMap(map<string, map<string, string> > &topic2info,
-                    string topic_name,
-                    map<string, map<string, string> >::iterator &element)
+bool findTopicInMap(std::map<std::string, std::map<std::string, std::string> > &topic2info,
+                    std::string topic_name,
+                    std::map<std::string, std::map<std::string, std::string> >::iterator &element)
 {
   element = topic2info.end();
 
@@ -370,19 +371,19 @@ int main(int argc, char **argv)
 
   cout << colouredString("Initializing sensor information:", RED, BOLD) << endl;
 
-  map<string, map<string, string>> topic2info_map = sensorInfo(nh);
+  std::map<std::string, std::map<std::string, std::string>> topic2info_map = sensorInfo(nh);
 
   cout << colouredString("DONE!", GREEN, BOLD) << endl;
 
   cout << colouredString("Creating folders:", RED, BOLD) << endl;
 
-  string path(argv[1]);
+  std::string path(argv[1]);
   size_t pos = path.find_last_of("/");
   size_t pos_dot = path.find_last_of(".");
 
-  string bagname;
-  string bagpath;
-  if (pos == string::npos) {
+  std::string bagname;
+  std::string bagpath;
+  if (pos == std::string::npos) {
     cout
         << colouredString(
             "Relative path are not supported. Use an absolute path instead."
@@ -409,15 +410,15 @@ int main(int argc, char **argv)
 
   cout << colouredString("\tQuering topics bag...", RED, REGULAR);
 
-  vector < string > topic_list;
+  vector < std::string > topic_list;
 
   rosbag::View view(bag);
 
   vector<const rosbag::ConnectionInfo *> bag_info = view.getConnections();
-  std::set < string > bag_topics;
+  std::set < std::string > bag_topics;
 
   for (const rosbag::ConnectionInfo *info : bag_info) {
-    string topic_name;
+	  std::string topic_name;
     topic_name = info->topic;
 
     if (isTopicInMap(topic2info_map, topic_name)) {
@@ -431,7 +432,7 @@ int main(int argc, char **argv)
 
   cout << colouredString("\tOpening file streams...", RED, REGULAR);
 
-  map<string, shared_ptr<ofstream>> topic2file = openFileStreams(
+  std::map<std::string, std::shared_ptr<std::ofstream>> topic2file = openFileStreams(
       bagpath + bagname, topic2info_map);
   cout << colouredString("\t[DONE!]", GREEN, REGULAR) << endl;
 
@@ -440,9 +441,9 @@ int main(int argc, char **argv)
   double view_size = view.size();
   double counter = 0;
   for (auto bagIt : view) {
-    string topic = bagIt.getTopic();
+	  std::string topic = bagIt.getTopic();
 
-    map<string, map<string, string> >::iterator sensor_it;
+	  std::map<std::string, std::map<std::string, std::string> >::iterator sensor_it;
 
     findTopicInMap(topic2info_map, topic, sensor_it);
     if (sensor_it == topic2info_map.end()) {
@@ -451,7 +452,7 @@ int main(int argc, char **argv)
       continue;
     }
 
-    string sens_type = sensor_it->second.find(SENSOR_TYPE)->second;
+    std::string sens_type = sensor_it->second.find(SENSOR_TYPE)->second;
     if (sens_type.compare(CAMERA) == 0) {
       sensor_msgs::Image::ConstPtr image =
           bagIt.instantiate<sensor_msgs::Image>();
